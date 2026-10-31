@@ -1,0 +1,16 @@
+[package]
+name = "deskdeck"
+version = "1.0.0"
+description = "DeskDeck Desktop"
+authors = ["DeskDeck"]
+edition = "2021"
+
+[lib]
+name = "deskdeck_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
