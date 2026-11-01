@@ -60,14 +60,25 @@ async fn connect_loxone(app:tauri::AppHandle,state:tauri::State<'_,Arc<AppState>
  let _=app.emit("loxone-update",Update{connected:true,moods:None,error:None});Ok(())
 }
 #[tauri::command]
-async fn set_scene(state:tauri::State<'_,Arc<AppState>>,scene:String)->Result<(),String>{
+async fn set_scene(state:tauri::State<'_,Arc<AppState>>,scene:String)->Result<String,String>{
  let s=state.settings.lock().unwrap().clone();
  let id=match scene.as_str(){"Gaming"=>s.gaming_id,"Ambient"=>s.ambient_id,_=>return Err("Unbekannte Szene".into())};
  if s.control_uuid.is_empty(){return Err("Lichtbaustein-UUID fehlt".into())}
  let guard=state.client.lock().await;
  let client=guard.as_ref().ok_or("Keine Loxone-Verbindung")?;
  if !client.live(){return Err("Loxone ist offline".into())}
- client.send_control(&s.control_uuid,&format!("setMoodToId/{id}")).await.map_err(|e|e.to_string())
+ // send_command liefert die echte Antwort des Miniservers statt nur den Queue-Erfolg.
+ let command=format!("jdev/sps/io/{}/setMoodToId/{id}",s.control_uuid);
+ let reply=client.send_command(&command).await.map_err(|e|format!("Loxone-Befehl fehlgeschlagen: {e}"))?;
+ let response:serde_json::Value=serde_json::from_slice(&reply)
+     .map_err(|e|format!("Loxone-Antwort ist kein JSON: {e}; Rohdaten: {}",String::from_utf8_lossy(&reply)))?;
+ let ll=response.get("LL").ok_or_else(||format!("Loxone-Antwort ohne LL: {response}"))?;
+ let code=ll.get("Code").or_else(||ll.get("code"))
+     .map(|v|v.as_str().map(str::to_owned).unwrap_or_else(||v.to_string()))
+     .unwrap_or_else(||"unbekannt".into());
+ if code!="200" {return Err(format!("Miniserver lehnt Szene {scene} (ID {id}) ab: Code {code}, Antwort: {response}"));}
+ let value=ll.get("value").map(|v|v.as_str().map(str::to_owned).unwrap_or_else(||v.to_string())).unwrap_or_else(||"(leer)".into());
+ Ok(format!("Loxone antwortet: Code {code}, Wert {value} · Szene {scene} (ID {id})"))
 }
 #[tauri::command]
 async fn connection_status(state:tauri::State<'_,Arc<AppState>>)->Result<bool,String>{let guard=state.client.lock().await;Ok(guard.as_ref().map(|c|c.live()).unwrap_or(false))}
