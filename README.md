@@ -1,46 +1,28 @@
-# DeskDeck Desktop V1 – Windows
+# DeskDeck V2 – Windows Tray Popup
 
-Eigenständige Tauri-2-Desktop-App mit lokal simulierten Daten. Kein Backend, kein Internetzugriff und keine Geräteverbindung erforderlich. Das Projekt enthält **Quellcode**, noch keine fertig kompilierte `.exe`.
+DeskDeck is a small Windows tray dashboard built with Tauri 2. All device data are **simulated**.
 
-## Voraussetzungen auf Windows 11
+## Install/update via GitHub Desktop
 
-- Node.js LTS (npm)
-- Rust über rustup (MSVC-Toolchain)
-- Microsoft C++ Build Tools / Visual Studio C++ Desktopentwicklung
-- WebView2 Runtime (unter Windows 11 normalerweise vorhanden)
+1. Extract `DeskDeck-V2-GitHub.zip`.
+2. Copy **the contents** of the extracted folder into your locally cloned `DeskDeck` repository. Merge/replace files when asked. Keep `.github` and `src-tauri` as directories.
+3. In GitHub Desktop: **Commit to main** → **Push origin**.
+4. Open GitHub → Actions → newest successful `Windows EXE erstellen` → Artifacts → `DeskDeck-Windows-Installer`.
+5. Extract the artifact and install the new DeskDeck version. If V1 is running, close it before updating.
 
-## Starten und testen
+## Usage
 
-In PowerShell im Projektordner:
+- After starting DeskDeck from the Start menu, look for the DeskDeck icon in the Windows notification area (possibly under `^`).
+- Left click the icon to show/hide the dashboard.
+- Click outside the popup to hide it. The application stays running.
+- To exit the process completely, use Task Manager for now. A tray right-click Quit menu is planned for a subsequent update.
+- The popup is positioned above the bottom-right corner of the **primary monitor's work area**. Multi-monitor and vertical-taskbar refinements are future improvements.
+- Buttons and status are demo-only and do not control actual hardware.
 
-```powershell
-npm install
-npm run desktop:dev
-```
+## SmartScreen / antivirus
 
-## Windows-Installer erstellen
+Windows SmartScreen may warn about unsigned or low-reputation binaries. This build is **not code-signed**. A malware scan is not a substitute for code signing or reputation. Only install artifacts from your own GitHub Actions build. To reduce warnings in future, obtain a trusted code-signing certificate and securely configure signing in CI. Do not disable Windows security protections.
 
-```powershell
-npm run desktop:build
-```
+## Developer
 
-Der NSIS-Installer wird unter `src-tauri/target/release/bundle/nsis/` erzeugt. Die Windows-Buildwerkzeuge müssen auf dem PC installiert sein. Die Tauri-CLI lädt bei Bedarf Build-Abhängigkeiten nach.
-
-## Bedienung
-
-- Oben auf `DESKDECK` klicken und ziehen: Fenster verschieben
-- `⌖`: Fenster im Vordergrund halten (an/aus)
-- `−`: Minimieren; `×`: Beenden
-- Links `⌂`: Home mit Gaming/Ambient und Statuskarten
-- Links `☷`: Smart Home mit Lichtszene und Raffstore-Presets
-- Unten `Teststatus`: simulierte Unraid-, Bambu- und Miele-Zustände ändern
-
-## Noch nicht integriert
-
-Keine Loxone-Steuerung, keine Bambu-MQTT-Anbindung, keine Miele-API, keine Unraid-Warnungen. Alle Aktionen ändern nur lokale Demo-Zustände. Die Werte sind Beispiele, keine Live-Daten. Die Schaltflächen `Auf`, `Beschatten`, `Zu` sind nur Presets in der Simulation.
-
-## Hinweise
-
-- Fenstergröße ist zunächst 680 × 252 Pixel, bewusst etwas größer als das physische 640 × 180 Long-Display, damit die Windows-Fenstersteuerung Platz hat.
-- `npm run dev` startet alternativ nur die Browser-Vorschau; `npm run desktop:dev` startet die native Desktop-Hülle.
-- Ohne installierte Windows-Rust-/C++-Toolchain kann keine Windows-EXE gebaut werden.
+`npm install` and `npm run desktop:dev` for local development; `npm run desktop:build` to build the NSIS installer. Requires Rust, Node.js and Windows C++ build tools.
