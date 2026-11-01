@@ -12,9 +12,9 @@ impl Default for Settings {fn default()->Self{Self{address:String::new(),usernam
 struct Update {connected:bool, moods:Option<Vec<u32>>, error:Option<String>}
 struct Handler {app:tauri::AppHandle, mood_uuid:String}
 impl LoxHandler for Handler {
-    fn on_text(&mut self, uuid:&LoxoneUuid, text:&str, _icon:&LoxoneUuid) {
+    fn on_text(&mut self, uuid:&LoxoneUuid, _icon:&LoxoneUuid, text:&[u8]) {
         if uuid.to_string().eq_ignore_ascii_case(&self.mood_uuid) {
-            let moods=serde_json::from_str::<Vec<u32>>(text).ok();
+            let moods=serde_json::from_slice::<Vec<u32>>(text).ok();
             let _=self.app.emit("loxone-update",Update{connected:true,moods,error:None});
         }
     }
