@@ -1,28 +1,22 @@
-# DeskDeck V2 – Windows Tray Popup
+# DeskDeck V2.1 – One Page Tray Edition
 
-DeskDeck is a small Windows tray dashboard built with Tauri 2. All device data are **simulated**.
+Einseitiges DeskDeck mit Windows-Tray-Popup (Linksklick auf Tray-Icon). Keine Navigation oder Unterseiten.
 
-## Install/update via GitHub Desktop
+- Lichtszene: zwei große Schaltflächen Gaming / Ambient
+- Rollladen: Hoch, Runter, Beschatten
+- Schlafmodus: reine Statusanzeige (nicht anklickbar), in der Demo über Teststatus simulierbar
+- Unraid-Status, Bambu Lab P2S und Miele mit simulierten Werten
+- Alle Geräteaktionen sind weiterhin Demo, **keine Loxone-Verbindung**
 
-1. Extract `DeskDeck-V2-GitHub.zip`.
-2. Copy **the contents** of the extracted folder into your locally cloned `DeskDeck` repository. Merge/replace files when asked. Keep `.github` and `src-tauri` as directories.
-3. In GitHub Desktop: **Commit to main** → **Push origin**.
-4. Open GitHub → Actions → newest successful `Windows EXE erstellen` → Artifacts → `DeskDeck-Windows-Installer`.
-5. Extract the artifact and install the new DeskDeck version. If V1 is running, close it before updating.
+## Installation über GitHub Desktop
 
-## Usage
+1. ZIP entpacken. **Den Inhalt** des entpackten Ordners (einschließlich `.github`) in das lokale geklonte Repository `DeskDeck` kopieren. Bestehende Dateien überschreiben.
+2. In GitHub Desktop `Commit to main` und `Push origin`.
+3. In GitHub unter Actions den neuen Workflow abwarten und das Installer-Artifact herunterladen.
+4. Installieren. Falls die alte App noch läuft: über den Task-Manager beenden, bevor der Installer gestartet wird.
 
-- After starting DeskDeck from the Start menu, look for the DeskDeck icon in the Windows notification area (possibly under `^`).
-- Left click the icon to show/hide the dashboard.
-- Click outside the popup to hide it. The application stays running.
-- To exit the process completely, use Task Manager for now. A tray right-click Quit menu is planned for a subsequent update.
-- The popup is positioned above the bottom-right corner of the **primary monitor's work area**. Multi-monitor and vertical-taskbar refinements are future improvements.
-- Buttons and status are demo-only and do not control actual hardware.
+Der Installer ist nicht codesigniert. Eine Windows-SmartScreen-Warnung ist weiterhin möglich.
 
-## SmartScreen / antivirus
+## Entwicklung
 
-Windows SmartScreen may warn about unsigned or low-reputation binaries. This build is **not code-signed**. A malware scan is not a substitute for code signing or reputation. Only install artifacts from your own GitHub Actions build. To reduce warnings in future, obtain a trusted code-signing certificate and securely configure signing in CI. Do not disable Windows security protections.
-
-## Developer
-
-`npm install` and `npm run desktop:dev` for local development; `npm run desktop:build` to build the NSIS installer. Requires Rust, Node.js and Windows C++ build tools.
+`npm install` und `npm run desktop:dev`. Der Windows-Installer wird mit `npm run desktop:build` gebaut.
