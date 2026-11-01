@@ -24,6 +24,10 @@ struct AppState {client:tokio::sync::Mutex<Option<Client>>, settings:Mutex<Setti
 fn settings_path(app:&tauri::AppHandle)->Result<PathBuf,String>{let dir=app.path().app_config_dir().map_err(|e|e.to_string())?;fs::create_dir_all(&dir).map_err(|e|e.to_string())?;Ok(dir.join("settings.json"))}
 fn credential()->Result<keyring::Entry,String>{keyring::Entry::new("DeskDeck.Loxone","miniserver").map_err(|e|e.to_string())}
 #[tauri::command]
+fn credential_status()->Result<bool,String>{
+ match credential()?.get_password(){Ok(p)=>Ok(!p.is_empty()),Err(keyring::Error::NoEntry)=>Ok(false),Err(e)=>Err(format!("Windows-Tresor nicht verfügbar: {e}"))}
+}
+#[tauri::command]
 fn load_settings(state:tauri::State<'_,Arc<AppState>>)->Settings{state.settings.lock().unwrap().clone()}
 #[tauri::command]
 fn save_settings(app:tauri::AppHandle,state:tauri::State<'_,Arc<AppState>>,settings:Settings,password:Option<String>)->Result<(),String>{
@@ -31,7 +35,12 @@ fn save_settings(app:tauri::AppHandle,state:tauri::State<'_,Arc<AppState>>,setti
  if !settings.address.starts_with("https://"){return Err("Bitte eine HTTPS-Adresse angeben (z. B. https://192.168.1.10)".into())}
  if !settings.control_uuid.is_empty()&&!settings.control_uuid.chars().all(|c|c.is_ascii_hexdigit()||c=='-'){return Err("Ungültige Baustein-UUID".into())}
  if !settings.active_moods_uuid.is_empty()&&!settings.active_moods_uuid.chars().all(|c|c.is_ascii_hexdigit()||c=='-'){return Err("Ungültige Status-UUID".into())}
- if let Some(p)=password{if !p.is_empty(){credential()?.set_password(&p).map_err(|e|e.to_string())?;}}
+ if let Some(p)=password { if !p.is_empty() {
+   let entry=credential()?;
+   entry.set_password(&p).map_err(|e|format!("Windows-Tresor: Speichern fehlgeschlagen: {e}"))?;
+   let stored=entry.get_password().map_err(|e|format!("Windows-Tresor: Rücklesen fehlgeschlagen: {e}"))?;
+   if stored != p { return Err("Windows-Tresor: gespeichertes Passwort stimmt nicht überein".into()); }
+ }}
  let content=serde_json::to_vec_pretty(&settings).map_err(|e|e.to_string())?;
  fs::write(settings_path(&app)?,content).map_err(|e|e.to_string())?;
  *state.settings.lock().unwrap()=settings;Ok(())
@@ -74,6 +83,6 @@ pub fn run(){let runtime=tokio::runtime::Builder::new_multi_thread().enable_all(
    .on_tray_icon_event(|tray,event|{if let TrayIconEvent::Click{button:MouseButton::Left,button_state:MouseButtonState::Up,..}=event{toggle_popup(tray.app_handle());}}).build(app)?;
   Ok(())
  })
- .invoke_handler(tauri::generate_handler![load_settings,save_settings,connect_loxone,set_scene,connection_status])
+ .invoke_handler(tauri::generate_handler![load_settings,credential_status,save_settings,connect_loxone,set_scene,connection_status])
  .on_window_event(|w,e|{if let tauri::WindowEvent::Focused(false)=e{let _=w.hide();}if let tauri::WindowEvent::CloseRequested{api,..}=e{api.prevent_close();let _=w.hide();}})
  .run(tauri::generate_context!()).expect("DeskDeck error");}
