@@ -1,22 +1,21 @@
-# DeskDeck V2.1 – One Page Tray Edition
+# DeskDeck V3 – Loxone Live (Beta)
 
-Einseitiges DeskDeck mit Windows-Tray-Popup (Linksklick auf Tray-Icon). Keine Navigation oder Unterseiten.
+Ausgangspunkt: DeskDeck V2.1. Tray bleibt erhalten, Layout bleibt einseitig. Gaming-ID **3**, Ambient-ID **99**.
 
-- Lichtszene: zwei große Schaltflächen Gaming / Ambient
-- Rollladen: Hoch, Runter, Beschatten
-- Schlafmodus: reine Statusanzeige (nicht anklickbar), in der Demo über Teststatus simulierbar
-- Unraid-Status, Bambu Lab P2S und Miele mit simulierten Werten
-- Alle Geräteaktionen sind weiterhin Demo, **keine Loxone-Verbindung**
+## Installation
+ZIP entpacken, den **Inhalt** in das lokale GitHub-Repository kopieren, Commit und Push. GitHub Actions baut den Windows-Installer.
 
-## Installation über GitHub Desktop
+## Einrichtung
+1. Zahnrad öffnen, HTTPS-Miniserver-Adresse, Benutzername und Passwort eingeben.
+2. Die **UUID des Lichtsteuerungsbausteins Büro** und **UUID seines Statusfelds `states.activeMoods`** eintragen. Beide UUIDs stammen aus `/data/LoxAPP3.json` (Loxone-Strukturdatei). Der sichtbare Name `Büro` allein ist nicht ausreichend.
+3. `Speichern & verbinden` wählen. Die App verwendet die Windows Credential Manager API via `keyring`, speichert nur nichtgeheime Einstellungen in der Benutzer-App-Konfiguration.
+4. Erst nach `Loxone verbunden · Status live` wird die Szene anhand empfangener `activeMoods`-Daten angezeigt.
 
-1. ZIP entpacken. **Den Inhalt** des entpackten Ordners (einschließlich `.github`) in das lokale geklonte Repository `DeskDeck` kopieren. Bestehende Dateien überschreiben.
-2. In GitHub Desktop `Commit to main` und `Push origin`.
-3. In GitHub unter Actions den neuen Workflow abwarten und das Installer-Artifact herunterladen.
-4. Installieren. Falls die alte App noch läuft: über den Task-Manager beenden, bevor der Installer gestartet wird.
-
-Der Installer ist nicht codesigniert. Eine Windows-SmartScreen-Warnung ist weiterhin möglich.
-
-## Entwicklung
-
-`npm install` und `npm run desktop:dev`. Der Windows-Installer wird mit `npm run desktop:build` gebaut.
+## Technische Hinweise
+- Verwendet die Rust-Library `loxwebsocket` 0.3.1 für Token-Authentifizierung, verschlüsselte WebSocket-Befehle, Statusupdates und Reconnect. Diese Version zielt auf Miniserver-Firmware 15+.
+- HTTPS per IP verwendet **Trust on First Use** (Zertifikatsschlüssel beim Erstkontakt übernommen). Prüfe die Miniserver-Adresse und die Netzwerksicherheit vor der ersten Verbindung. Kein Ausschalten der Zertifikatsprüfung.
+- Für Status ist das **Text-Event** des `activeMoods`-Feldes erforderlich. Wenn es nicht im Loxone-UI veröffentlicht wird, muss die Visualisierung des Bausteins aktiviert werden.
+- Kein Passwort und keine Tokens in GitHub oder in settings.json. Das Passwort wird bei jedem App-Start aus Windows Credential Manager geladen.
+- Rollladen, Unraid, Schlafmodus, Drucker und Waschmaschine bleiben Demo.
+- **Beta, nicht gegen einen echten Miniserver getestet.** GitHub-Build und reale Statusübertragung müssen geprüft werden.
+- SmartScreen: weiterhin unsigniert.
